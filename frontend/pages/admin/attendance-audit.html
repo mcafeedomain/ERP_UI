@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+    <meta name="description" content="Attendance Audit - Admin Dashboard - University ERP">
+    <meta name="theme-color" content="#f59e0b">
+    <title>Attendance Audit | Admin | UniERP</title>
+    
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { fontFamily: { poppins: ['Poppins', 'sans-serif'], inter: ['Inter', 'sans-serif'] } } }
+        }
+    </script>
+    
+    <style>
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', sans-serif; }
+        
+        :root {
+            --bg-body: #f0f4f8;
+            --bg-card: #ffffff;
+            --bg-card-rgb: 255, 255, 255;
+            --bg-input: #f1f5f9;
+            --border-color: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --primary: #f59e0b;
+            --primary-rgb: 245, 158, 11;
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 80px;
+            --navbar-height: 64px;
+        }
+        
+        html.dark {
+            --bg-body: #0a0f1a;
+            --bg-card: #131b2e;
+            --bg-card-rgb: 19, 27, 46;
+            --bg-input: #1e293b;
+            --border-color: #1e3a5f;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+        }
+        
+        body { background: var(--bg-body); color: var(--text-primary); min-height: 100vh; }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #d946ef);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Sidebar */
+        .sidebar-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 90; opacity: 0; visibility: hidden;
+            transition: all 0.3s;
+        }
+        .sidebar-overlay.active { opacity: 1; visibility: visible; }
+        @media (min-width: 1024px) { .sidebar-overlay { display: none !important; } }
+        
+        .sidebar {
+            position: fixed; top: 0; left: 0;
+            width: var(--sidebar-width); max-width: 85vw;
+            height: 100vh; background: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            z-index: 100; display: flex; flex-direction: column;
+            transform: translateX(-100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sidebar.open { transform: translateX(0); box-shadow: 0 0 50px rgba(0,0,0,0.3); }
+        @media (min-width: 1024px) {
+            .sidebar { transform: translateX(0); }
+            .sidebar.collapsed { width: var(--sidebar-collapsed); }
+            .sidebar.collapsed .sidebar-brand-text,
+            .sidebar.collapsed .sidebar-user-info,
+            .sidebar.collapsed .sidebar-section,
+            .sidebar.collapsed .sidebar-link span,
+            .sidebar.collapsed .sidebar-logout span { display: none; }
+            .sidebar.collapsed .sidebar-header { justify-content: center; }
+            .sidebar.collapsed .sidebar-user { justify-content: center; padding: 12px; }
+            .sidebar.collapsed .sidebar-link { justify-content: center; padding: 14px; }
+            .sidebar.collapsed .sidebar-logout { justify-content: center; padding: 14px; }
+        }
+        
+        .sidebar-header {
+            height: var(--navbar-height);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 16px; border-bottom: 1px solid var(--border-color);
+        }
+        .sidebar-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .sidebar-logo {
+            width: 42px; height: 42px; border-radius: 12px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #d946ef);
+            padding: 2px;
+        }
+        .sidebar-logo-inner {
+            width: 100%; height: 100%; border-radius: 10px;
+            background: var(--bg-card);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .sidebar-brand-text { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+        
+        .close-sidebar-btn, .toggle-btn {
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 10px; background: var(--bg-input);
+            color: var(--text-secondary); border: none; cursor: pointer;
+        }
+        @media (min-width: 1024px) { .close-sidebar-btn { display: none; } }
+        .toggle-btn { display: none; width: 32px; height: 32px; }
+        @media (min-width: 1024px) { .toggle-btn { display: flex; } }
+        
+        .sidebar-user {
+            display: flex; align-items: center; gap: 12px;
+            margin: 16px; padding: 16px;
+            background: var(--bg-input); border-radius: 14px;
+        }
+        .sidebar-avatar {
+            width: 48px; height: 48px; border-radius: 12px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .sidebar-user-info { flex: 1; }
+        .sidebar-name { font-weight: 600; color: var(--text-primary); margin: 0; }
+        .sidebar-role { font-size: 12px; color: var(--text-muted); margin: 2px 0 0; }
+        
+        .sidebar-menu { flex: 1; padding: 8px 12px; overflow-y: auto; }
+        .sidebar-section { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); padding: 16px 14px 8px; margin: 0; }
+        .sidebar-link {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 16px; border-radius: 12px;
+            font-size: 15px; font-weight: 500;
+            color: var(--text-secondary); text-decoration: none;
+            margin-bottom: 4px; transition: all 0.2s;
+        }
+        .sidebar-link i { font-size: 20px; width: 24px; text-align: center; }
+        .sidebar-link:hover { background: var(--bg-input); color: var(--primary); }
+        .sidebar-link.active {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white; box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
+        }
+        
+        .sidebar-footer { padding: 16px; border-top: 1px solid var(--border-color); }
+        .sidebar-logout {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; padding: 14px; border-radius: 12px;
+            background: rgba(239, 68, 68, 0.1); color: #ef4444;
+            font-weight: 600; border: none; cursor: pointer;
+        }
+        
+        /* Main Wrapper */
+        .main-wrapper { min-height: 100vh; display: flex; flex-direction: column; transition: margin-left 0.3s; }
+        @media (min-width: 1024px) {
+            .main-wrapper { margin-left: var(--sidebar-width); }
+            .sidebar.collapsed ~ .main-wrapper { margin-left: var(--sidebar-collapsed); }
+        }
+        
+        /* Top Navbar */
+        .top-navbar {
+            height: var(--navbar-height);
+            background: rgba(var(--bg-card-rgb), 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky; top: 0; z-index: 50;
+        }
+        .navbar-content {
+            height: 100%; padding: 0 12px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        @media (min-width: 768px) { .navbar-content { padding: 0 20px; } }
+        
+        .navbar-left { display: flex; align-items: center; gap: 8px; flex: 1; }
+        .navbar-right { display: flex; align-items: center; gap: 6px; }
+        
+        .btn-icon {
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 10px; background: var(--bg-input);
+            color: var(--text-secondary); border: none; cursor: pointer;
+            font-size: 18px; transition: all 0.2s; position: relative;
+        }
+        @media (min-width: 640px) { .btn-icon { width: 44px; height: 44px; border-radius: 12px; font-size: 20px; } }
+        .btn-icon:hover { background: var(--border-color); color: var(--text-primary); }
+        
+        #mobileMenuBtn { display: flex; }
+        @media (min-width: 1024px) { #mobileMenuBtn { display: none; } }
+        
+        .notification-badge {
+            position: absolute; top: -3px; right: -3px;
+            min-width: 16px; height: 16px; padding: 0 4px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white; font-size: 9px; font-weight: 700;
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            border: 2px solid var(--bg-card);
+        }
+        
+        .search-wrapper { flex: 1; max-width: 450px; position: relative; display: none; }
+        @media (min-width: 640px) { .search-wrapper { display: block; } }
+        
+        .search-input {
+            width: 100%; height: 44px;
+            padding: 0 16px 0 44px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        .search-input::placeholder { color: var(--text-muted); }
+        .search-input:focus {
+            outline: none; border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15);
+        }
+        .search-icon {
+            position: absolute; left: 14px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted); font-size: 16px;
+        }
+        
+        .avatar-ring { padding: 2px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 50%; }
+        .avatar-sm {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white; font-size: 13px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid var(--bg-card);
+        }
+        
+        .profile-btn {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 12px 6px 6px; border-radius: 12px;
+            background: transparent; border: none; cursor: pointer;
+        }
+        .profile-btn:hover { background: var(--bg-input); }
+        
+        .profile-info { display: none; flex-direction: column; }
+        @media (min-width: 768px) { .profile-info { display: flex; } }
+        .profile-name { font-size: 14px; font-weight: 600; color: var(--text-primary); line-height: 1.2; }
+        .profile-role { font-size: 11px; color: var(--text-muted); line-height: 1.2; }
+        
+        .dropdown-menu {
+            border: none; border-radius: 16px; padding: 8px;
+            background: var(--bg-card); box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+        html.dark .dropdown-menu { box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
+        .dropdown-header { padding: 12px 16px; border-bottom: 1px solid var(--border-color); }
+        .dropdown-user-name { font-weight: 600; color: var(--text-primary); margin: 0; }
+        .dropdown-user-role { font-size: 12px; color: var(--text-muted); margin: 2px 0 0; }
+        .dropdown-body { padding: 8px 0; }
+        .dropdown-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px; border-radius: 10px;
+            font-size: 14px; font-weight: 500; color: var(--text-secondary);
+        }
+        .dropdown-item:hover { background: var(--bg-input); color: var(--primary); }
+        .dropdown-item.logout { color: #ef4444; }
+        .dropdown-item.logout:hover { background: rgba(239, 68, 68, 0.1); }
+        
+        /* Main Content */
+        .main-content { flex: 1; padding: 16px; }
+        @media (min-width: 640px) { .main-content { padding: 20px; } }
+        @media (min-width: 1024px) { .main-content { padding: 24px 32px; } }
+        
+        .page-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
+        .page-title { font-size: 24px; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
+        @media (min-width: 640px) { .page-title { font-size: 28px; } }
+        .page-subtitle { font-size: 14px; color: var(--text-secondary); margin: 0; }
+        
+        .breadcrumb {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 13px; color: var(--text-muted); margin-bottom: 16px;
+        }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+        .breadcrumb i { font-size: 10px; }
+        
+        /* Filters */
+        .filters-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-label { font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block; color: var(--text-primary); }
+        .form-select, .form-control {
+            width: 100%; padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px; background: var(--bg-input);
+            color: var(--text-primary); font-size: 14px;
+        }
+        .form-select:focus, .form-control:focus {
+            outline: none; border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15);
+        }
+        
+        .btn-primary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white; font-weight: 600; border: none;
+            border-radius: 10px; cursor: pointer; font-size: 14px;
+        }
+        .btn-primary:hover { box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3); }
+        
+        .btn-secondary {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 10px 18px; background: var(--bg-input);
+            color: var(--text-secondary); font-weight: 600;
+            border: 1px solid var(--border-color);
+            border-radius: 10px; cursor: pointer; font-size: 14px;
+        }
+        .btn-secondary:hover { background: var(--border-color); }
+        
+        /* Audit Table */
+        .audit-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .audit-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .audit-title { font-size: 17px; font-weight: 700; color: var(--text-primary); margin: 0; }
+        .audit-count {
+            font-size: 13px; font-weight: 600;
+            padding: 6px 12px; border-radius: 20px;
+            background: rgba(245, 158, 11, 0.15); color: #f59e0b;
+        }
+        
+        .table-responsive { overflow-x: auto; }
+        .audit-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        .audit-table th {
+            background: var(--bg-input); padding: 12px 16px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.05em; color: var(--text-muted); text-align: left;
+        }
+        .audit-table td {
+            padding: 14px 16px; border-bottom: 1px solid var(--border-color);
+            vertical-align: middle; color: var(--text-primary);
+        }
+        .audit-table tr:last-child td { border-bottom: none; }
+        
+        /* Expandable Row */
+        .expandable-row { cursor: pointer; transition: background 0.2s; }
+        .expandable-row:hover { background: rgba(var(--primary-rgb), 0.03); }
+        .expandable-row.expanded { background: rgba(var(--primary-rgb), 0.05); }
+        
+        .expand-icon {
+            width: 32px; height: 32px; border-radius: 8px;
+            background: var(--bg-input); color: var(--text-secondary);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; transition: all 0.2s;
+        }
+        .expandable-row.expanded .expand-icon {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b; transform: rotate(90deg);
+        }
+        
+        .student-info { display: flex; align-items: center; gap: 12px; }
+        .student-avatar {
+            width: 40px; height: 40px; border-radius: 10px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white; font-size: 14px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .student-name { font-weight: 600; color: var(--text-primary); }
+        .student-roll { font-size: 12px; color: var(--text-muted); }
+        
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 5px 12px; border-radius: 20px;
+            font-size: 11px; font-weight: 600;
+        }
+        .status-badge.present { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .status-badge.absent { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+        .status-badge.late { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+        
+        .modified-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 4px 10px; background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b; font-size: 10px; font-weight: 600;
+            border-radius: 6px;
+        }
+        
+        /* Accordion Audit Trail */
+        .audit-trail {
+            padding: 0 !important;
+            background: var(--bg-input) !important;
+        }
+        .accordion { margin: 0; }
+        .accordion-item {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .accordion-item:last-child { border-bottom: none; }
+        
+        .accordion-button {
+            background: transparent !important;
+            color: var(--text-primary) !important;
+            padding: 16px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: none !important;
+        }
+        .accordion-button:not(.collapsed) { background: rgba(var(--primary-rgb), 0.05) !important; }
+        .accordion-button::after {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23f59e0b'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+        }
+        
+        .accordion-body {
+            padding: 20px;
+            background: var(--bg-card);
+        }
+        
+        .audit-timeline { position: relative; padding-left: 40px; }
+        .audit-entry {
+            position: relative;
+            padding: 16px;
+            background: var(--bg-input);
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+        .audit-entry:last-child { margin-bottom: 0; }
+        
+        .audit-entry::before {
+            content: '';
+            position: absolute;
+            left: -28px;
+            top: 24px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 3px solid #f59e0b;
+        }
+        .audit-entry::after {
+            content: '';
+            position: absolute;
+            left: -23px;
+            top: 36px;
+            width: 2px;
+            height: calc(100% + 12px);
+            background: var(--border-color);
+        }
+        .audit-entry:last-child::after { display: none; }
+        
+        .audit-entry.create::before { border-color: #10b981; }
+        .audit-entry.update::before { border-color: #f59e0b; }
+        .audit-entry.delete::before { border-color: #ef4444; }
+        .audit-entry.admin-change::before { border-color: #6366f1; }
+        
+        .audit-meta {
+            display: flex; align-items: center; gap: 12px;
+            flex-wrap: wrap; margin-bottom: 8px;
+        }
+        .audit-user {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-weight: 600; color: var(--text-primary);
+        }
+        .audit-user-avatar {
+            width: 24px; height: 24px; border-radius: 6px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white; font-size: 10px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .audit-time { font-size: 12px; color: var(--text-muted); }
+        .audit-type {
+            font-size: 10px; font-weight: 600;
+            padding: 3px 8px; border-radius: 6px;
+        }
+        .audit-type.create { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .audit-type.update { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+        .audit-type.delete { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+        .audit-type.admin { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
+        
+        .audit-changes {
+            display: flex; flex-direction: column; gap: 6px;
+            font-size: 13px; color: var(--text-secondary);
+        }
+        .change-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 12px;
+            background: var(--bg-card);
+            border-radius: 8px;
+        }
+        .change-label { font-weight: 600; min-width: 70px; }
+        .change-old {
+            padding: 4px 8px; border-radius: 6px;
+            background: rgba(239, 68, 68, 0.1); color: #ef4444;
+            text-decoration: line-through;
+        }
+        .change-arrow { color: var(--text-muted); }
+        .change-new {
+            padding: 4px 8px; border-radius: 6px;
+            background: rgba(16, 185, 129, 0.1); color: #10b981;
+        }
+        
+        .admin-warning {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 14px;
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 3px solid #6366f1;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #6366f1;
+            margin-top: 10px;
+        }
+        .admin-warning i { font-size: 16px; }
+        
+        .footer {
+            padding: 16px; text-align: center;
+            color: var(--text-muted); font-size: 12px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-card);
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        (function() {
+            var u = localStorage.getItem('erp_user');
+            if (!u) window.location.href = '../../index.html';
+        })();
+    </script>
+    
+    <!-- Sidebar Overlay -->
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+    
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <a href="../../dashboard.html" class="sidebar-brand">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-inner">
+                        <i class="bi bi-mortarboard-fill gradient-text"></i>
+                    </div>
+                </div>
+                <span class="sidebar-brand-text">Uni<span class="gradient-text">ERP</span></span>
+            </a>
+            <button id="closeSidebar" class="close-sidebar-btn"><i class="bi bi-x-lg"></i></button>
+            <button id="toggleSidebar" class="toggle-btn"><i class="bi bi-chevron-left" id="toggleIcon"></i></button>
+        </div>
+        
+        <div class="sidebar-user">
+            <div class="sidebar-avatar" id="sidebarAvatar">AD</div>
+            <div class="sidebar-user-info">
+                <p class="sidebar-name" id="sidebarName">Admin User</p>
+                <p class="sidebar-role">System Administrator</p>
+            </div>
+        </div>
+        
+        <nav class="sidebar-menu">
+            <a href="dashboard.html" class="sidebar-link">
+                <i class="bi bi-grid-1x2-fill"></i>
+                <span>Dashboard</span>
+            </a>
+            
+            <p class="sidebar-section">Management</p>
+            <a href="#" class="sidebar-link">
+                <i class="bi bi-people-fill"></i>
+                <span>Users</span>
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="bi bi-book-half"></i>
+                <span>Courses</span>
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="bi bi-building"></i>
+                <span>Departments</span>
+            </a>
+            
+            <p class="sidebar-section">Reports & Audit</p>
+            <a href="#" class="sidebar-link">
+                <i class="bi bi-bar-chart-fill"></i>
+                <span>Reports</span>
+            </a>
+            <a href="attendance-audit.html" class="sidebar-link active">
+                <i class="bi bi-shield-check"></i>
+                <span>Attendance Audit</span>
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="bi bi-clock-history"></i>
+                <span>Activity Logs</span>
+            </a>
+            
+            <p class="sidebar-section">System</p>
+            <a href="#" class="sidebar-link">
+                <i class="bi bi-gear-fill"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <button id="sidebarLogout" class="sidebar-logout">
+                <i class="bi bi-box-arrow-left"></i>
+                <span>Sign Out</span>
+            </button>
+        </div>
+    </aside>
+    
+    <!-- Main Wrapper -->
+    <div id="mainWrapper" class="main-wrapper">
+        <!-- Top Navbar -->
+        <header class="top-navbar">
+            <div class="navbar-content">
+                <div class="navbar-left">
+                    <button id="mobileMenuBtn" class="btn-icon"><i class="bi bi-list"></i></button>
+                    
+                    <div class="search-wrapper">
+                        <i class="bi bi-search search-icon"></i>
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search by student, course, faculty..." />
+                    </div>
+                </div>
+                
+                <div class="navbar-right">
+                    <button id="themeToggle" class="btn-icon" title="Toggle Theme">
+                        <i id="themeIcon" class="bi bi-moon-fill"></i>
+                    </button>
+                    
+                    <div class="dropdown">
+                        <button class="btn-icon" data-bs-toggle="dropdown">
+                            <i class="bi bi-bell-fill"></i>
+                            <span class="notification-badge">3</span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end" style="width: 280px;">
+                            <div class="dropdown-header"><h6 class="mb-0 fw-semibold">Notifications</h6></div>
+                            <div class="dropdown-body">
+                                <a href="#" class="dropdown-item"><i class="bi bi-exclamation-triangle text-warning"></i> 5 modified records</a>
+                                <a href="#" class="dropdown-item"><i class="bi bi-shield-check text-primary"></i> Audit report ready</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dropdown">
+                        <button class="profile-btn" data-bs-toggle="dropdown">
+                            <div class="avatar-ring">
+                                <div class="avatar-sm" id="navAvatar">AD</div>
+                            </div>
+                            <div class="profile-info">
+                                <span class="profile-name" id="navName">Admin User</span>
+                                <span class="profile-role" id="navRole">Administrator</span>
+                            </div>
+                            <i class="bi bi-chevron-down" style="color: var(--text-muted); font-size: 12px;"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end" style="width: 220px;">
+                            <div class="dropdown-header">
+                                <p class="dropdown-user-name" id="dropdownName">Admin User</p>
+                                <p class="dropdown-user-role">System Administrator</p>
+                            </div>
+                            <div class="dropdown-body">
+                                <a href="#" class="dropdown-item"><i class="bi bi-person"></i> Profile</a>
+                                <a href="#" class="dropdown-item"><i class="bi bi-gear"></i> Settings</a>
+                            </div>
+                            <div style="padding: 8px; border-top: 1px solid var(--border-color);">
+                                <button id="logoutBtn" class="dropdown-item logout w-100 border-0 bg-transparent text-start">
+                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <a href="../../dashboard.html">Dashboard</a>
+                <i class="bi bi-chevron-right"></i>
+                <a href="#">Admin</a>
+                <i class="bi bi-chevron-right"></i>
+                <span>Attendance Audit</span>
+            </div>
+            
+            <!-- Page Header -->
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title"><i class="bi bi-shield-check me-2"></i>Attendance Audit Trail</h1>
+                    <p class="page-subtitle">View complete modification history for all attendance records</p>
+                </div>
+            </div>
+            
+            <!-- Filters with Department -->
+            <div class="filters-card">
+                <div class="row g-3">
+                    <div class="col-md-3 col-lg-2">
+                        <label class="form-label">Date Range</label>
+                        <select class="form-select" id="dateRange">
+                            <option>Last 7 Days</option>
+                            <option>Last 30 Days</option>
+                            <option>This Month</option>
+                            <option>Custom Range</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-lg-2">
+                        <label class="form-label">Department</label>
+                        <select class="form-select" id="department">
+                            <option value="">All Departments</option>
+                            <option>Computer Science</option>
+                            <option>Electrical Engg</option>
+                            <option>Mechanical Engg</option>
+                            <option>Civil Engineering</option>
+                            <option>Mathematics</option>
+                            <option>Physics</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-lg-2">
+                        <label class="form-label">Course</label>
+                        <select class="form-select" id="course">
+                            <option value="">All Courses</option>
+                            <option>CS301 - Data Structures</option>
+                            <option>CS302 - Database Systems</option>
+                            <option>CS303 - Computer Networks</option>
+                            <option>CS304 - Software Engg</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-lg-2">
+                        <label class="form-label">Modified By</label>
+                        <select class="form-select" id="modifiedBy">
+                            <option value="">All Users</option>
+                            <option>Dr. R. Sharma</option>
+                            <option>Prof. A. Kumar</option>
+                            <option>Admin User</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-lg-2">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="status">
+                            <option value="">All Status</option>
+                            <option>Modified Only</option>
+                            <option>Admin Changes</option>
+                            <option>Faculty Changes</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-lg-2 d-flex align-items-end">
+                        <button class="btn-primary w-100"><i class="bi bi-funnel"></i> Filter</button>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 mt-3">
+                    <button class="btn-secondary"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+                    <button class="btn-secondary ms-auto"><i class="bi bi-download"></i> Export CSV</button>
+                    <button class="btn-secondary"><i class="bi bi-file-pdf"></i> Export PDF</button>
+                </div>
+            </div>
+            
+            <!-- Audit Table -->
+            <div class="audit-card">
+                <div class="audit-header">
+                    <h3 class="audit-title">Attendance Records</h3>
+                    <span class="audit-count">127 records</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="audit-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;"></th>
+                                <th>Student</th>
+                                <th>Course</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Marked By</th>
+                                <th>Modified</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Row 1 - Modified by Admin (Hidden Change) -->
+                            <tr class="expandable-row" data-bs-toggle="collapse" data-bs-target="#audit1">
+                                <td><div class="expand-icon"><i class="bi bi-chevron-right"></i></div></td>
+                                <td>
+                                    <div class="student-info">
+                                        <div class="student-avatar">AS</div>
+                                        <div>
+                                            <div class="student-name">Aditya Sharma</div>
+                                            <div class="student-roll">21CS001</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong>CS301</strong> - Data Structures</td>
+                                <td>Dec 07, 2025</td>
+                                <td><span class="status-badge present"><i class="bi bi-check"></i> Present</span></td>
+                                <td>Dr. R. Sharma</td>
+                                <td><span class="modified-badge"><i class="bi bi-pencil-fill"></i> 3 changes</span></td>
+                            </tr>
+                            <tr class="audit-trail">
+                                <td colspan="7" class="p-0">
+                                    <div id="audit1" class="accordion-collapse collapse">
+                                        <div class="accordion-body">
+                                            <h5 style="font-size: 15px; font-weight: 700; margin-bottom: 16px;">
+                                                <i class="bi bi-clock-history me-2"></i>Modification History
+                                            </h5>
+                                            <div class="audit-timeline">
+                                                <!-- Entry 3 - Admin Override -->
+                                                <div class="audit-entry admin-change">
+                                                    <div class="audit-meta">
+                                                        <div class="audit-user">
+                                                            <div class="audit-user-avatar">AD</div>
+                                                            <span>Admin User</span>
+                                                        </div>
+                                                        <span class="audit-time">Dec 07, 2025 • 4:32 PM</span>
+                                                        <span class="audit-type admin">ADMIN OVERRIDE</span>
+                                                    </div>
+                                                    <div class="audit-changes">
+                                                        <div class="change-item">
+                                                            <span class="change-label">Status:</span>
+                                                            <span class="change-old">Late</span>
+                                                            <i class="bi bi-arrow-right change-arrow"></i>
+                                                            <span class="change-new">Present</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="admin-warning">
+                                                        <i class="bi bi-shield-lock-fill"></i>
+                                                        <span><strong>Admin Override:</strong> Changed by system administrator. Reason: Student was in class, scanner malfunction.</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Entry 2 - Faculty Update -->
+                                                <div class="audit-entry update">
+                                                    <div class="audit-meta">
+                                                        <div class="audit-user">
+                                                            <div class="audit-user-avatar">RS</div>
+                                                            <span>Dr. R. Sharma</span>
+                                                        </div>
+                                                        <span class="audit-time">Dec 07, 2025 • 2:15 PM</span>
+                                                        <span class="audit-type update">UPDATED</span>
+                                                    </div>
+                                                    <div class="audit-changes">
+                                                        <div class="change-item">
+                                                            <span class="change-label">Status:</span>
+                                                            <span class="change-old">Absent</span>
+                                                            <i class="bi bi-arrow-right change-arrow"></i>
+                                                            <span class="change-new">Late</span>
+                                                        </div>
+                                                        <div class="change-item">
+                                                            <span class="change-label">Time:</span>
+                                                            <span class="change-new">Marked at 2:15 PM</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Entry 1 - Initial Creation -->
+                                                <div class="audit-entry create">
+                                                    <div class="audit-meta">
+                                                        <div class="audit-user">
+                                                            <div class="audit-user-avatar">RS</div>
+                                                            <span>Dr. R. Sharma</span>
+                                                        </div>
+                                                        <span class="audit-time">Dec 07, 2025 • 9:05 AM</span>
+                                                        <span class="audit-type create">CREATED</span>
+                                                    </div>
+                                                    <div class="audit-changes">
+                                                        <div class="change-item">
+                                                            <span class="change-label">Status:</span>
+                                                            <span class="change-new">Absent</span>
+                                                        </div>
+                                                        <div class="change-item">
+                                                            <span class="change-label">Method:</span>
+                                                            <span class="change-new">Manual Entry</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Row 2 - Modified by Faculty -->
+                            <tr class="expandable-row" data-bs-toggle="collapse" data-bs-target="#audit2">
+                                <td><div class="expand-icon"><i class="bi bi-chevron-right"></i></div></td>
+                                <td>
+                                    <div class="student-info">
+                                        <div class="student-avatar">PP</div>
+                                        <div>
+                                            <div class="student-name">Priya Patel</div>
+                                            <div class="student-roll">21CS002</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong>CS301</strong> - Data Structures</td>
+                                <td>Dec 07, 2025</td>
+                                <td><span class="status-badge present"><i class="bi bi-check"></i> Present</span></td>
+                                <td>Dr. R. Sharma</td>
+                                <td><span class="modified-badge"><i class="bi bi-pencil-fill"></i> 1 change</span></td>
+                            </tr>
+                            <tr class="audit-trail">
+                                <td colspan="7" class="p-0">
+                                    <div id="audit2" class="accordion-collapse collapse">
+                                        <div class="accordion-body">
+                                            <h5 style="font-size: 15px; font-weight: 700; margin-bottom: 16px;">
+                                                <i class="bi bi-clock-history me-2"></i>Modification History
+                                            </h5>
+                                            <div class="audit-timeline">
+                                                <!-- Entry 2 - Faculty Correction -->
+                                                <div class="audit-entry update">
+                                                    <div class="audit-meta">
+                                                        <div class="audit-user">
+                                                            <div class="audit-user-avatar">RS</div>
+                                                            <span>Dr. R. Sharma</span>
+                                                        </div>
+                                                        <span class="audit-time">Dec 07, 2025 • 11:45 AM</span>
+                                                        <span class="audit-type update">UPDATED</span>
+                                                    </div>
+                                                    <div class="audit-changes">
+                                                        <div class="change-item">
+                                                            <span class="change-label">Status:</span>
+                                                            <span class="change-old">Absent</span>
+                                                            <i class="bi bi-arrow-right change-arrow"></i>
+                                                            <span class="change-new">Present</span>
+                                                        </div>
+                                                        <div class="change-item">
+                                                            <span class="change-label">Reason:</span>
+                                                            <span style="color: var(--text-secondary);">Student arrived late but attended full class</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Entry 1 - Initial QR Scan Failed -->
+                                                <div class="audit-entry create">
+                                                    <div class="audit-meta">
+                                                        <div class="audit-user">
+                                                            <div class="audit-user-avatar">RS</div>
+                                                            <span>Dr. R. Sharma</span>
+                                                        </div>
+                                                        <span class="audit-time">Dec 07, 2025 • 9:00 AM</span>
+                                                        <span class="audit-type create">CREATED</span>
+                                                    </div>
+                                                    <div class="audit-changes">
+                                                        <div class="change-item">
+                                                            <span class="change-label">Status:</span>
+                                                            <span class="change-new">Absent</span>
+                                                        </div>
+                                                        <div class="change-item">
+                                                            <span class="change-label">Method:</span>
+                                                            <span class="change-new">Default (No Scan)</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Row 3 - QR Scanned, No Modifications -->
+                            <tr class="expandable-row" data-bs-toggle="collapse" data-bs-target="#audit3">
+                                <td><div class="expand-icon"><i class="bi bi-chevron-right"></i></div></td>
+                                <td>
+                                    <div class="student-info">
+                                        <div class="student-avatar">RK</div>
+                                        <div>
+                                            <div class="student-name">Rahul Kumar</div>
+                                            <div class="student-roll">21CS003</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong>CS301</strong> - Data Structures</td>
+                                <td>Dec 07, 2025</td>
+                                <td><span class="status-badge present"><i class="bi bi-check"></i> Present</span></td>
+                                <td>Dr. R. Sharma</td>
+                                <td><span style="color: var(--text-muted); font-size: 12px;">No changes</span></td>
+                            </tr>
+                            <tr class="audit-trail">
+                                <td colspan="7" class="p-0">
+                                    <div id="audit3" class="accordion-collapse collapse">
+                                        <div class="accordion-body">
+                                            <h5 style="font-size: 15px; font-weight: 700; margin-bottom: 16px;">
+                                                <i class="bi bi-clock-history me-2"></i>Modification History
+                                            </h5>
+                                            <div class="audit-timeline">
+                                                <div class="audit-entry create">
+                                                    <div class="audit-meta">
+                                                        <div class="audit-user">
+                                                            <div class="audit-user-avatar">RS</div>
+                                                            <span>Dr. R. Sharma</span>
+                                                        </div>
+                                                        <span class="audit-time">Dec 07, 2025 • 9:02 AM</span>
+                                                        <span class="audit-type create">CREATED</span>
+                                                    </div>
+                                                    <div class="audit-changes">
+                                                        <div class="change-item">
+                                                            <span class="change-label">Status:</span>
+                                                            <span class="change-new">Present</span>
+                                                        </div>
+                                                        <div class="change-item">
+                                                            <span class="change-label">Method:</span>
+                                                            <span class="change-new">QR Code Scan</span>
+                                                        </div>
+                                                        <div class="change-item">
+                                                            <span class="change-label">Scan Time:</span>
+                                                            <span style="color: var(--text-secondary);">9:02:14 AM</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Row 4 - Multiple Faculty Changes -->
+                            <tr class="expandable-row" data-bs-toggle="collapse" data-bs-target="#audit4">
+                                <td><div class="expand-icon"><i class="bi bi-chevron-right"></i></div></td>
+                                <td>
+                                    <div class="student-info">
+                                        <div class="student-avatar">SG</div>
+                                        <div>
+                                            <div class="student-name">Sneha Gupta</div>
+                                            <div class="student-roll">21CS004</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong>CS302</strong> - Database Systems</td>
+                                <td>Dec 06, 2025</td>
+                                <td><span class="status-badge late"><i class="bi bi-clock"></i> Late</span></td>
+                                <td>Prof. A. Kumar</td>
+                                <td><span class="modified-badge"><i class="bi bi-pencil-fill"></i> 2 changes</span></td>
+                            </tr>
+                            <tr class="audit-trail">
+                                <td colspan="7" class="p-0">
+                                    <div id="audit4" class="accordion-collapse collapse">
+                                        <div class="accordion-body">
+                                            <h5 style="font-size: 15px; font-weight: 700; margin-bottom: 16px;">
+                                                <i class="bi bi-clock-history me-2"></i>Modification History
+                                            </h5>
+                                            <div class="audit-timeline">
+                                                <!-- Entry 3 -->
+                                                <div class="audit-entry update">
+                                                    <div class="audit-meta">
+                                                        <div class="audit-user">
+                                                            <div class="audit-user-avatar">AK</div>
+                                                            <span>Prof. A. Kumar</span>
+                                                        </div>
+                                                        <span class="audit-time">Dec 06, 2025 • 3:20 PM</span>
+                                                        <span class="audit-type update">UPDATED</span>
+                                                    </div>
+                                                    <div class="audit-changes">
+                                                        <div class="change-item">
+                                                            <span class="change-label">Status:</span>
+                                                            <span class="change-old">Present</span>
+                                                            <i class="bi bi-arrow-right change-arrow"></i>
+                                                            <span class="change-new">Late</span>
+                                                        </div>
+                                                        <div class="change-item">
+                                                            <span class="change-label">Reason:</span>
+                                                            <span style="color: var(--text-secondary);">Arrived 20 minutes late</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Entry 2 -->
+                                                <div class="audit-entry update">
+                                                    <div class="audit-meta">
+                                                        <div class="audit-user">
+                                                            <div class="audit-user-avatar">AK</div>
+                                                            <span>Prof. A. Kumar</span>
+                                                        </div>
+                                                        <span class="audit-time">Dec 06, 2025 • 1:30 PM</span>
+                                                        <span class="audit-type update">UPDATED</span>
+                                                    </div>
+                                                    <div class="audit-changes">
+                                                        <div class="change-item">
+                                                            <span class="change-label">Status:</span>
+                                                            <span class="change-old">Absent</span>
+                                                            <i class="bi bi-arrow-right change-arrow"></i>
+                                                            <span class="change-new">Present</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Entry 1 -->
+                                                <div class="audit-entry create">
+                                                    <div class="audit-meta">
+                                                        <div class="audit-user">
+                                                            <div class="audit-user-avatar">AK</div>
+                                                            <span>Prof. A. Kumar</span>
+                                                        </div>
+                                                        <span class="audit-time">Dec 06, 2025 • 1:05 PM</span>
+                                                        <span class="audit-type create">CREATED</span>
+                                                    </div>
+                                                    <div class="audit-changes">
+                                                        <div class="change-item">
+                                                            <span class="change-label">Status:</span>
+                                                            <span class="change-new">Absent</span>
+                                                        </div>
+                                                        <div class="change-item">
+                                                            <span class="change-label">Method:</span>
+                                                            <span class="change-new">Manual Entry</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Row 5 - Admin Deleted & Restored -->
+                            <tr class="expandable-row" data-bs-toggle="collapse" data-bs-target="#audit5">
+                                <td><div class="expand-icon"><i class="bi bi-chevron-right"></i></div></td>
+                                <td>
+                                    <div class="student-info">
+                                        <div class="student-avatar">VS</div>
+                                        <div>
+                                            <div class="student-name">Vikram Singh</div>
+                                            <div class="student-roll">21CS005</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong>CS303</strong> - Computer Networks</td>
+                                <td>Dec 05, 2025</td>
+                                <td><span class="status-badge absent"><i class="bi bi-x"></i> Absent</span></td>
+                                <td>Dr. R. Sharma</td>
+                                <td><span class="modified-badge"><i class="bi bi-pencil-fill"></i> 4 changes</span></td>
+                            </tr>
+                            <tr class="audit-trail">
+                                <td colspan="7" class="p-0">
+                                    <div id="audit5" class="accordion-collapse collapse">
+                                        <div class="accordion-body">
+                                            <h5 style="font-size: 15px; font-weight: 700; margin-bottom: 16px;">
+                                                <i class="bi bi-clock-history me-2"></i>Modification History
+                                            </h5>
+                                            <div class="audit-timeline">
+                                                <!-- Entry 4 - Admin Restored -->
+                                                <div class="audit-entry admin-change">
+                                                    <div class="audit-meta">
+                                                        <div class="audit-user">
+                                                            <div class="audit-user-avatar">AD</div>
+                                                            <span>Admin User</span>
+                                                        </div>
+                                                        <span class="audit-time">Dec 05, 2025 • 6:15 PM</span>
+                                                        <span class="audit-type admin">RESTORED</span>
+                                                    </div>
+                                                    <div class="audit-changes">
+                                                        <div class="change-item">
+                                                            <span class="change-label">Action:</span>
+                                                            <span class="change-new">Record Restored from Deletion</span>
+                                                        </div>
+                                                        <div class="change-item">
+                                                            <span class="change-label">Status:</span>
+                                                            <span class="change-new">Absent</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="admin-warning">
+                                                        <i class="bi bi-shield-lock-fill"></i>
+                                                        <span><strong>Admin Action:</strong> Record was incorrectly deleted. Restored for audit compliance.</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Entry 3 - Admin Deleted -->
+                                                <div class="audit-entry delete">
+                                                    <div class="audit-meta">
+                                                        <div class="audit-user">
+                                                            <div class="audit-user-avatar">AD</div>
+                                                            <span>Admin User</span>
+                                                        </div>
+                                                        <span class="audit-time">Dec 05, 2025 • 5:30 PM</span>
+                                                        <span class="audit-type delete">DELETED</span>
+                                                    </div>
+                                                    <div class="audit-changes">
+                                                        <div class="change-item">
+                                                            <span class="change-label">Action:</span>
+                                                            <span class="change-old">Record Deleted</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="admin-warning" style="background: rgba(239, 68, 68, 0.1); border-left-color: #ef4444; color: #ef4444;">
+                                                        <i class="bi bi-trash-fill"></i>
+                                                        <span><strong>Deletion Event:</strong> This record was temporarily deleted by admin.</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Entry 2 -->
+                                                <div class="audit-entry update">
+                                                    <div class="audit-meta">
+                                                        <div class="audit-user">
+                                                            <div class="audit-user-avatar">RS</div>
+                                                            <span>Dr. R. Sharma</span>
+                                                        </div>
+                                                        <span class="audit-time">Dec 05, 2025 • 2:45 PM</span>
+                                                        <span class="audit-type update">UPDATED</span>
+                                                    </div>
+                                                    <div class="audit-changes">
+                                                        <div class="change-item">
+                                                            <span class="change-label">Status:</span>
+                                                            <span class="change-old">Present</span>
+                                                            <i class="bi bi-arrow-right change-arrow"></i>
+                                                            <span class="change-new">Absent</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Entry 1 -->
+                                                <div class="audit-entry create">
+                                                    <div class="audit-meta">
+                                                        <div class="audit-user">
+                                                            <div class="audit-user-avatar">RS</div>
+                                                            <span>Dr. R. Sharma</span>
+                                                        </div>
+                                                        <span class="audit-time">Dec 05, 2025 • 9:10 AM</span>
+                                                        <span class="audit-type create">CREATED</span>
+                                                    </div>
+                                                    <div class="audit-changes">
+                                                        <div class="change-item">
+                                                            <span class="change-label">Status:</span>
+                                                            <span class="change-new">Present</span>
+                                                        </div>
+                                                        <div class="change-item">
+                                                            <span class="change-label">Method:</span>
+                                                            <span class="change-new">QR Code Scan</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Row 6 - Admin Bulk Update -->
+                            <tr class="expandable-row" data-bs-toggle="collapse" data-bs-target="#audit6">
+                                <td><div class="expand-icon"><i class="bi bi-chevron-right"></i></div></td>
+                                <td>
+                                    <div class="student-info">
+                                        <div class="student-avatar">AR</div>
+                                        <div>
+                                            <div class="student-name">Ananya Reddy</div>
+                                            <div class="student-roll">21CS006</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong>CS304</strong> - Software Engg</td>
+                                <td>Dec 04, 2025</td>
+                                <td><span class="status-badge present"><i class="bi bi-check"></i> Present</span></td>
+                                <td>Dr. R. Sharma</td>
+                                <td><span class="modified-badge"><i class="bi bi-pencil-fill"></i> 2 changes</span></td>
+                            </tr>
+                            <tr class="audit-trail">
+                                <td colspan="7" class="p-0">
+                                    <div id="audit6" class="accordion-collapse collapse">
+                                        <div class="accordion-body">
+                                            <h5 style="font-size: 15px; font-weight: 700; margin-bottom: 16px;">
+                                                <i class="bi bi-clock-history me-2"></i>Modification History
+                                            </h5>
+                                            <div class="audit-timeline">
+                                                <!-- Entry 2 - Admin Bulk Update -->
+                                                <div class="audit-entry admin-change">
+                                                    <div class="audit-meta">
+                                                        <div class="audit-user">
+                                                            <div class="audit-user-avatar">AD</div>
+                                                            <span>Admin User</span>
+                                                        </div>
+                                                        <span class="audit-time">Dec 04, 2025 • 11:00 PM</span>
+                                                        <span class="audit-type admin">BULK UPDATE</span>
+                                                    </div>
+                                                    <div class="audit-changes">
+                                                        <div class="change-item">
+                                                            <span class="change-label">Status:</span>
+                                                            <span class="change-old">Absent</span>
+                                                            <i class="bi bi-arrow-right change-arrow"></i>
+                                                            <span class="change-new">Present</span>
+                                                        </div>
+                                                        <div class="change-item">
+                                                            <span class="change-label">Batch:</span>
+                                                            <span style="color: var(--text-secondary);">Part of 15 records bulk update</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="admin-warning">
+                                                        <i class="bi bi-shield-lock-fill"></i>
+                                                        <span><strong>Bulk Operation:</strong> System-level correction applied to multiple records. Faculty reported scanner issues.</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Entry 1 -->
+                                                <div class="audit-entry create">
+                                                    <div class="audit-meta">
+                                                        <div class="audit-user">
+                                                            <div class="audit-user-avatar">RS</div>
+                                                            <span>Dr. R. Sharma</span>
+                                                        </div>
+                                                        <span class="audit-time">Dec 04, 2025 • 4:05 PM</span>
+                                                        <span class="audit-type create">CREATED</span>
+                                                    </div>
+                                                    <div class="audit-changes">
+                                                        <div class="change-item">
+                                                            <span class="change-label">Status:</span>
+                                                            <span class="change-new">Absent</span>
+                                                        </div>
+                                                        <div class="change-item">
+                                                            <span class="change-label">Method:</span>
+                                                            <span class="change-new">Manual Entry</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Row 7 - No Modifications -->
+                            <tr class="expandable-row" data-bs-toggle="collapse" data-bs-target="#audit7">
+                                <td><div class="expand-icon"><i class="bi bi-chevron-right"></i></div></td>
+                                <td>
+                                    <div class="student-info">
+                                        <div class="student-avatar">KN</div>
+                                        <div>
+                                            <div class="student-name">Karthik Nair</div>
+                                            <div class="student-roll">21CS007</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong>CS301</strong> - Data Structures</td>
+                                <td>Dec 07, 2025</td>
+                                <td><span class="status-badge absent"><i class="bi bi-x"></i> Absent</span></td>
+                                <td>Dr. R. Sharma</td>
+                                <td><span style="color: var(--text-muted); font-size: 12px;">No changes</span></td>
+                            </tr>
+                            <tr class="audit-trail">
+                                <td colspan="7" class="p-0">
+                                    <div id="audit7" class="accordion-collapse collapse">
+                                        <div class="accordion-body">
+                                            <h5 style="font-size: 15px; font-weight: 700; margin-bottom: 16px;">
+                                                <i class="bi bi-clock-history me-2"></i>Modification History
+                                            </h5>
+                                            <div class="audit-timeline">
+                                                <div class="audit-entry create">
+                                                    <div class="audit-meta">
+                                                        <div class="audit-user">
+                                                            <div class="audit-user-avatar">RS</div>
+                                                            <span>Dr. R. Sharma</span>
+                                                        </div>
+                                                        <span class="audit-time">Dec 07, 2025 • 9:00 AM</span>
+                                                        <span class="audit-type create">CREATED</span>
+                                                    </div>
+                                                    <div class="audit-changes">
+                                                        <div class="change-item">
+                                                            <span class="change-label">Status:</span>
+                                                            <span class="change-new">Absent</span>
+                                                        </div>
+                                                        <div class="change-item">
+                                                            <span class="change-label">Method:</span>
+                                                            <span class="change-new">Default (No Scan)</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div style="height: 40px;"></div>
+        </main>
+        
+        <footer class="footer">© <span id="currentYear"></span> University ERP</footer>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        (function() {
+            'use strict';
+            
+            const CONFIG = { STORAGE_KEY: 'erp_user', LOGIN_URL: '../../index.html' };
+            let user = null;
+            let sidebarCollapsed = false;
+            
+            document.addEventListener('DOMContentLoaded', init);
+            
+            function init() {
+                if (!checkAuth()) return;
+                initUI();
+                initTheme();
+                initSidebar();
+                initSidebarToggle();
+                initExpandableRows();
+                initLogout();
+                document.getElementById('currentYear').textContent = new Date().getFullYear();
+            }
+            
+            function checkAuth() {
+                const data = localStorage.getItem(CONFIG.STORAGE_KEY);
+                if (!data) { window.location.href = CONFIG.LOGIN_URL; return false; }
+                try {
+                    user = JSON.parse(data);
+                    return !!user?.name;
+                } catch { window.location.href = CONFIG.LOGIN_URL; return false; }
+            }
+            
+            function initUI() {
+                const name = user.name || 'Admin';
+                const role = user.role || 'Admin';
+                const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+                
+                document.getElementById('sidebarName').textContent = name;
+                document.getElementById('sidebarAvatar').textContent = initials;
+                document.getElementById('navAvatar').textContent = initials;
+                document.getElementById('navName').textContent = name;
+                document.getElementById('navRole').textContent = capitalizeFirst(role);
+                document.getElementById('dropdownName').textContent = name;
+            }
+            
+            function capitalizeFirst(str) {
+                return str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
+            }
+            
+            function initTheme() {
+                const icon = document.getElementById('themeIcon');
+                const saved = localStorage.getItem('theme');
+                const isDark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                
+                document.documentElement.classList.toggle('dark', isDark);
+                icon.className = isDark ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+                
+                document.getElementById('themeToggle').onclick = () => {
+                    const dark = document.documentElement.classList.toggle('dark');
+                    icon.className = dark ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+                    localStorage.setItem('theme', dark ? 'dark' : 'light');
+                };
+            }
+            
+            function initSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebarOverlay');
+                
+                const open = () => {
+                    sidebar.classList.add('open');
+                    overlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                };
+                const close = () => {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                };
+                
+                document.getElementById('mobileMenuBtn').onclick = open;
+                document.getElementById('closeSidebar').onclick = close;
+                overlay.onclick = close;
+            }
+            
+            function initSidebarToggle() {
+                const sidebar = document.getElementById('sidebar');
+                const toggleBtn = document.getElementById('toggleSidebar');
+                const toggleIcon = document.getElementById('toggleIcon');
+                
+                const saved = localStorage.getItem('sidebarCollapsed');
+                if (saved === 'true' && window.innerWidth >= 1024) {
+                    sidebarCollapsed = true;
+                    sidebar.classList.add('collapsed');
+                    toggleIcon.className = 'bi bi-chevron-right';
+                }
+                
+                toggleBtn.onclick = () => {
+                    sidebarCollapsed = !sidebarCollapsed;
+                    sidebar.classList.toggle('collapsed', sidebarCollapsed);
+                    toggleIcon.className = sidebarCollapsed ? 'bi bi-chevron-right' : 'bi bi-chevron-left';
+                    localStorage.setItem('sidebarCollapsed', sidebarCollapsed);
+                };
+            }
+            
+            function initExpandableRows() {
+                document.querySelectorAll('.expandable-row').forEach(row => {
+                    const targetId = row.getAttribute('data-bs-target');
+                    const collapse = document.querySelector(targetId);
+                    
+                    collapse.addEventListener('show.bs.collapse', () => {
+                        row.classList.add('expanded');
+                    });
+                    
+                    collapse.addEventListener('hide.bs.collapse', () => {
+                        row.classList.remove('expanded');
+                    });
+                });
+            }
+            
+            function initLogout() {
+                const logout = () => {
+                    localStorage.removeItem(CONFIG.STORAGE_KEY);
+                    window.location.href = CONFIG.LOGIN_URL;
+                };
+                document.getElementById('sidebarLogout').onclick = logout;
+                document.getElementById('logoutBtn').onclick = logout;
+            }
+        })();
+    </script>
+</body>
+</html>
